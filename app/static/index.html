@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Taste Intelligence</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header>
+    <div>
+      <p class="eyebrow">LOCAL-FIRST PERSONAL AI</p>
+      <h1>Taste Intelligence</h1>
+      <p class="subtitle">A private recommendation system that learns why you like things.</p>
+    </div>
+    <button id="exportBtn" class="secondary">Export data</button>
+  </header>
+
+  <nav>
+    <button class="nav active" data-tab="recommend">Recommend</button>
+    <button class="nav" data-tab="onboarding">Calibrate</button>
+    <button class="nav" data-tab="catalog">Catalog</button>
+    <button class="nav" data-tab="profile">Taste Profile</button>
+  </nav>
+
+  <main>
+    <section id="recommend" class="tab active">
+      <div class="panel">
+        <div class="section-heading"><div><p class="eyebrow">CONTEXT-AWARE</p><h2>What fits right now?</h2></div><span id="health" class="status">Checking…</span></div>
+        <div class="controls grid">
+          <label>Mode<select id="mode"><option value="entertainment">Entertainment</option><option value="focus">Focus / Learning</option><option value="discovery">Discovery</option><option value="comfort">Comfort</option></select></label>
+          <label>Energy<select id="energy"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></label>
+          <label>Time available (minutes)<input id="time" type="number" min="5" placeholder="No limit"></label>
+          <label>Exploration<input id="exploration" type="range" min="0" max="100" value="35"><span id="explorationValue">35%</span></label>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" class="mediaType" value="movie"> English movies</label>
+          <label><input type="checkbox" class="mediaType" value="telugu_movie"> Telugu movies</label>
+          <label><input type="checkbox" class="mediaType" value="series"> Series</label>
+          <label><input type="checkbox" class="mediaType" value="anime"> Anime</label>
+          <label><input type="checkbox" class="mediaType" value="manga"> Manga</label>
+          <label><input type="checkbox" class="mediaType" value="manhwa"> Manhwa</label>
+          <label><input type="checkbox" class="mediaType" value="youtube_channel"> YouTube</label>
+          <label><input id="dub" type="checkbox"> Require anime dub</label>
+          <label><input id="completedOnly" type="checkbox"> Completed works only</label>
+        </div>
+        <button id="recommendBtn" class="primary">Generate recommendations</button>
+      </div>
+      <div id="recommendations" class="cards"></div>
+    </section>
+
+    <section id="onboarding" class="tab">
+      <div class="panel">
+        <p class="eyebrow">EXPLICIT SIGNALS</p><h2>Calibrate your taste</h2>
+        <p>Move only the dimensions you feel confident about. The system will learn the rest through feedback.</p>
+        <div id="sliders" class="sliders"></div>
+        <button id="saveOnboarding" class="primary">Save calibration</button>
+      </div>
+    </section>
+
+    <section id="catalog" class="tab">
+      <div class="panel inline"><input id="search" placeholder="Search titles, topics, or concepts"><button id="searchBtn" class="secondary">Search</button></div>
+      <div id="catalogList" class="cards"></div>
+    </section>
+
+    <section id="profile" class="tab">
+      <div id="analytics" class="stats"></div>
+      <div class="panel"><p class="eyebrow">INSPECTABLE MODEL</p><h2>What the system currently believes</h2><div id="profileList"></div></div>
+    </section>
+  </main>
+
+  <dialog id="feedbackDialog">
+    <form method="dialog" id="feedbackForm">
+      <button class="close" value="cancel">×</button>
+      <p class="eyebrow">TEACH THE SYSTEM</p><h2 id="feedbackTitle">Feedback</h2>
+      <input type="hidden" id="feedbackMediaId">
+      <label>Status<select id="feedbackStatus"><option value="interested">Interested</option><option value="planned">Planned</option><option value="started">Started</option><option value="paused">Paused</option><option value="completed">Completed</option><option value="abandoned">Abandoned</option><option value="rejected">Not interested</option></select></label>
+      <label>Progress %<input id="progress" type="number" min="0" max="100" value="0"></label>
+      <label>Enjoyment <span id="enjoymentValue">80</span>/100<input id="enjoyment" type="range" min="0" max="100" value="80"></label>
+      <label>Perceived quality <span id="qualityValue">80</span>/100<input id="quality" type="range" min="0" max="100" value="80"></label>
+      <label>Notes<textarea id="notes" placeholder="What worked or failed, and why?"></textarea></label>
+      <button id="saveFeedback" value="default" class="primary">Save feedback</button>
+    </form>
+  </dialog>
+  <script src="/static/app.js"></script>
+</body>
+</html>
