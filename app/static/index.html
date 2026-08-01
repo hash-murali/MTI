@@ -1,87 +1,19 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Taste Intelligence</title>
-  <link rel="stylesheet" href="/static/styles.css">
-</head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MTI — Media Taste Intelligence</title><link rel="stylesheet" href="/static/styles.css"></head>
 <body>
-  <header>
-    <div>
-      <p class="eyebrow">LOCAL-FIRST PERSONAL AI</p>
-      <h1>Taste Intelligence</h1>
-      <p class="subtitle">A private recommendation system that learns why you like things.</p>
-    </div>
-    <button id="exportBtn" class="secondary">Export data</button>
-  </header>
-
-  <nav>
-    <button class="nav active" data-tab="recommend">Recommend</button>
-    <button class="nav" data-tab="onboarding">Calibrate</button>
-    <button class="nav" data-tab="catalog">Catalog</button>
-    <button class="nav" data-tab="profile">Taste Profile</button>
-  </nav>
-
-  <main>
-    <section id="recommend" class="tab active">
-      <div class="panel">
-        <div class="section-heading"><div><p class="eyebrow">CONTEXT-AWARE</p><h2>What fits right now?</h2></div><span id="health" class="status">Checking…</span></div>
-        <div class="controls grid">
-          <label>Mode<select id="mode"><option value="entertainment">Entertainment</option><option value="focus">Focus / Learning</option><option value="discovery">Discovery</option><option value="comfort">Comfort</option></select></label>
-          <label>Energy<select id="energy"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></label>
-          <label>Time available (minutes)<input id="time" type="number" min="5" placeholder="No limit"></label>
-          <label>Exploration<input id="exploration" type="range" min="0" max="100" value="35"><span id="explorationValue">35%</span></label>
-        </div>
-        <div class="checks">
-          <label><input type="checkbox" class="mediaType" value="movie"> English movies</label>
-          <label><input type="checkbox" class="mediaType" value="telugu_movie"> Telugu movies</label>
-          <label><input type="checkbox" class="mediaType" value="series"> Series</label>
-          <label><input type="checkbox" class="mediaType" value="anime"> Anime</label>
-          <label><input type="checkbox" class="mediaType" value="manga"> Manga</label>
-          <label><input type="checkbox" class="mediaType" value="manhwa"> Manhwa</label>
-          <label><input type="checkbox" class="mediaType" value="youtube_channel"> YouTube</label>
-          <label><input id="dub" type="checkbox"> Require anime dub</label>
-          <label><input id="completedOnly" type="checkbox"> Completed works only</label>
-        </div>
-        <button id="recommendBtn" class="primary">Generate recommendations</button>
-      </div>
-      <div id="recommendations" class="cards"></div>
-    </section>
-
-    <section id="onboarding" class="tab">
-      <div class="panel">
-        <p class="eyebrow">EXPLICIT SIGNALS</p><h2>Calibrate your taste</h2>
-        <p>Move only the dimensions you feel confident about. The system will learn the rest through feedback.</p>
-        <div id="sliders" class="sliders"></div>
-        <button id="saveOnboarding" class="primary">Save calibration</button>
-      </div>
-    </section>
-
-    <section id="catalog" class="tab">
-      <div class="panel inline"><input id="search" placeholder="Search titles, topics, or concepts"><button id="searchBtn" class="secondary">Search</button></div>
-      <div id="catalogList" class="cards"></div>
-    </section>
-
-    <section id="profile" class="tab">
-      <div id="analytics" class="stats"></div>
-      <div class="panel"><p class="eyebrow">INSPECTABLE MODEL</p><h2>What the system currently believes</h2><div id="profileList"></div></div>
-    </section>
-  </main>
-
-  <dialog id="feedbackDialog">
-    <form method="dialog" id="feedbackForm">
-      <button class="close" value="cancel">×</button>
-      <p class="eyebrow">TEACH THE SYSTEM</p><h2 id="feedbackTitle">Feedback</h2>
-      <input type="hidden" id="feedbackMediaId">
-      <label>Status<select id="feedbackStatus"><option value="interested">Interested</option><option value="planned">Planned</option><option value="started">Started</option><option value="paused">Paused</option><option value="completed">Completed</option><option value="abandoned">Abandoned</option><option value="rejected">Not interested</option></select></label>
-      <label>Progress %<input id="progress" type="number" min="0" max="100" value="0"></label>
-      <label>Enjoyment <span id="enjoymentValue">80</span>/100<input id="enjoyment" type="range" min="0" max="100" value="80"></label>
-      <label>Perceived quality <span id="qualityValue">80</span>/100<input id="quality" type="range" min="0" max="100" value="80"></label>
-      <label>Notes<textarea id="notes" placeholder="What worked or failed, and why?"></textarea></label>
-      <button id="saveFeedback" value="default" class="primary">Save feedback</button>
-    </form>
-  </dialog>
-  <script src="/static/app.js"></script>
-</body>
-</html>
+<header><div><p class="eyebrow">LOCAL-FIRST PERSONAL AI</p><h1>Media Taste Intelligence</h1><p class="subtitle">Discover, save, calibrate, and teach a recommendation system that belongs only to you.</p></div><div class="header-actions"><span id="health" class="status">Checking…</span><button id="exportBtn" class="secondary">Export</button></div></header>
+<nav>
+<button class="nav active" data-tab="suggestions">Suggestions</button><button class="nav" data-tab="saved">Saved</button><button class="nav" data-tab="random">Random</button><button class="nav" data-tab="preferences">Preferences</button><button class="nav" data-tab="calibrate">Calibration</button><button class="nav" data-tab="catalog">Catalog</button><button class="nav" data-tab="add-entry">Add Entry</button><button class="nav" data-tab="profile">Taste Profile</button>
+</nav>
+<main>
+<section id="suggestions" class="tab active"><div class="panel hero-panel"><div><p class="eyebrow">CONTEXT-AWARE PICKS</p><h2>What fits right now?</h2></div><div class="controls grid"><label>Profile<select id="preset"><option value="balanced">Balanced</option><option value="focus">Focus / Learning</option><option value="comfort">Comfort</option><option value="deep">Deep Story</option><option value="discovery">Discovery</option><option value="custom">Custom</option></select></label><label>Energy<select id="energy"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></label><label>Time available<input id="time" type="number" min="5" placeholder="No limit"></label><label>Exploration<input id="exploration" type="range" min="0" max="100" value="35"><span id="explorationValue">35%</span></label></div><div class="checks"><label><input type="checkbox" class="mediaType" value="movie"> Movies</label><label><input type="checkbox" class="mediaType" value="telugu_movie"> Telugu movies</label><label><input type="checkbox" class="mediaType" value="series"> Series</label><label><input type="checkbox" class="mediaType" value="anime"> Anime</label><label><input type="checkbox" class="mediaType" value="manga"> Manga</label><label><input type="checkbox" class="mediaType" value="manhwa"> Manhwa</label><label><input type="checkbox" class="mediaType" value="youtube_channel"> YouTube</label><label><input id="dub" type="checkbox"> Require dub</label><label><input id="completedOnly" type="checkbox"> Completed only</label></div><button id="recommendBtn" class="primary">Build suggestion set</button></div><div id="recommendations"></div></section>
+<section id="saved" class="tab"><div class="section-title"><div><p class="eyebrow">YOUR QUEUE</p><h2>Saved and in progress</h2></div><button id="refreshSaved" class="secondary">Refresh</button></div><div id="savedList" class="cards"></div></section>
+<section id="random" class="tab"><div class="panel centered"><p class="eyebrow">DECISION-FREE PICK</p><h2>Let MTI choose one</h2><div class="inline compact"><select id="randomType"><option value="">Any medium</option><option value="movie">Movie</option><option value="telugu_movie">Telugu movie</option><option value="series">Series</option><option value="anime">Anime</option><option value="manga">Manga</option><option value="manhwa">Manhwa</option><option value="youtube_channel">YouTube</option></select><button id="randomBtn" class="primary">Surprise me</button></div></div><div id="randomResult" class="cards single"></div></section>
+<section id="preferences" class="tab"><div class="panel"><p class="eyebrow">FAST CONTEXT PROFILES</p><h2>Choose a ready-made preference profile</h2><p>Profiles adjust the recommendation request without replacing your learned global taste.</p><div id="presetCards" class="preset-grid"></div></div></section>
+<section id="calibrate" class="tab"><div class="panel"><p class="eyebrow">EXPLICIT SIGNALS</p><h2>Calibration studio</h2><div class="inline"><select id="calibrationScope"><option value="global">Global / general taste</option><option value="movie">Movies</option><option value="series">Series</option><option value="anime">Anime</option><option value="manga">Manga and manhwa</option><option value="youtube_channel">YouTube</option></select><input id="customFeature" placeholder="Add custom dimension, e.g. strategic_depth"><button id="addFeature" class="secondary">Add dimension</button></div><div id="sliders" class="sliders"></div><button id="saveOnboarding" class="primary">Save calibration</button></div><div class="panel"><p class="eyebrow">GENRE EVIDENCE</p><h2>How the catalog represents genres</h2><p>One item may support several genres. Each genre below shows catalog evidence.</p><div id="genreEvidence" class="genre-grid"></div></div></section>
+<section id="catalog" class="tab"><div class="panel catalog-tools"><input id="search" placeholder="Search title, description, topic, or genre"><select id="catalogType"><option value="">All media</option><option value="movie">Movies</option><option value="telugu_movie">Telugu movies</option><option value="series">Series</option><option value="anime">Anime</option><option value="manga">Manga</option><option value="manhwa">Manhwa</option><option value="youtube_channel">YouTube</option></select><button id="searchBtn" class="secondary">Search</button></div><div id="catalogList" class="cards"></div></section>
+<section id="add-entry" class="tab"><form id="entryForm" class="panel form-grid"><div class="full"><p class="eyebrow">USER-CREATED CATALOG</p><h2>Add media to MTI</h2><p>Use the standard description to explain premise, tone, themes, pacing, strengths, and likely audience.</p></div><label>Title<input id="entryTitle" required></label><label>Media type<select id="entryType"><option value="movie">Movie</option><option value="telugu_movie">Telugu movie</option><option value="series">Series</option><option value="anime">Anime</option><option value="manga">Manga</option><option value="manhwa">Manhwa</option><option value="youtube_channel">YouTube channel</option></select></label><label>Language<input id="entryLanguage" value="English"></label><label>Runtime minutes<input id="entryRuntime" type="number" min="1"></label><label>Commitment<select id="entryCommitment"><option>short</option><option selected>medium</option><option>long</option><option>ongoing</option></select></label><label>Status<select id="entryStatus"><option value="completed">Completed work</option><option value="ongoing">Ongoing</option><option value="unknown">Unknown</option></select></label><label class="full">Standard description<textarea id="entryDescription" placeholder="Premise; dominant themes; emotional tone; pacing; storytelling style; world-building; strengths; possible drawbacks."></textarea></label><label class="full">Genres — comma separated<input id="entryGenres" placeholder="science fiction, philosophy, time travel"></label><label class="full">Tags and concepts — comma separated<input id="entryTags" placeholder="causality, mathematics, strategy, cosmic scale"></label><label class="full">Possible downsides — comma separated<input id="entryDownsides" placeholder="slow opening, dense exposition"></label><div class="full feature-box"><h3>Common taste signals</h3><div id="entryFeatures" class="mini-sliders"></div></div><div class="checks full"><label><input id="entryDub" type="checkbox"> Dub available</label><label><input id="entryHidden" type="checkbox"> Hidden gem</label></div><button class="primary full" type="submit">Add to catalog</button></form></section>
+<section id="profile" class="tab"><div id="analytics" class="stats"></div><div class="profile-columns"><div class="panel"><p class="eyebrow">GLOBAL / GENERAL</p><h2>Long-term taste</h2><div id="globalProfile"></div></div><div class="panel"><p class="eyebrow">MEDIA-SPECIFIC</p><h2>Scoped taste</h2><div id="scopedProfile"></div></div></div></section>
+</main>
+<dialog id="feedbackDialog"><form method="dialog" id="feedbackForm"><button class="close" value="cancel">×</button><p class="eyebrow">TEACH THE SYSTEM</p><h2 id="feedbackTitle">Feedback</h2><input type="hidden" id="feedbackMediaId"><label>Status<select id="feedbackStatus"><option value="interested">Interested</option><option value="planned">Saved / planned</option><option value="started">Started</option><option value="paused">Paused</option><option value="completed">Completed</option><option value="abandoned">Abandoned</option><option value="rejected">Not interested</option></select></label><label>Progress %<input id="progress" type="number" min="0" max="100" value="0"></label><label>Enjoyment <span id="enjoymentValue">80</span>/100<input id="enjoyment" type="range" min="0" max="100" value="80"></label><label>Perceived quality <span id="qualityValue">80</span>/100<input id="quality" type="range" min="0" max="100" value="80"></label><label>Notes<textarea id="notes"></textarea></label><button id="saveFeedback" value="default" class="primary">Save feedback</button></form></dialog>
+<script src="/static/app.js"></script></body></html>
