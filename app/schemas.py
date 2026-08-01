@@ -37,3 +37,20 @@ class RecommendationContext(BaseModel):
     dub_required: bool = False
     completed_only: bool = False
     limit: int = Field(default=8, ge=1, le=20)
+
+
+class MediaCreatePayload(BaseModel):
+    title: str = Field(min_length=1, max_length=240)
+    media_type: str = Field(min_length=1, max_length=32)
+    description: str = Field(default="", max_length=4000)
+    language: str = Field(default="English", max_length=64)
+    status: str = Field(default="completed", max_length=32)
+    runtime_minutes: int | None = Field(default=None, ge=1)
+    commitment: str = Field(default="medium", max_length=64)
+    genres: list[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
+    features: dict[str, float] = Field(default_factory=dict)
+    downsides: list[str] = Field(default_factory=list)
+    dub_available: bool = False
+    hidden_gem: bool = False
+    quality_prior: float = Field(default=0.7, ge=0, le=1)
