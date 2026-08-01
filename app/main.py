@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -12,8 +13,9 @@ from sqlalchemy.orm import Session
 from .database import Base, engine, get_db
 from .models import ConsumptionRecord, Evaluation, InteractionEvent, MediaItem, PreferenceDimension, RecommendationRun
 from .recommender import ensure_default_profile, recommend, update_profile_from_evaluation
-from .schemas import FeedbackPayload, OnboardingPayload, RecommendationContext
+from .schemas import FeedbackPayload, MediaCreatePayload, OnboardingPayload, RecommendationContext
 from .seed import seed_catalog
+
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
@@ -25,9 +27,29 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="Personal AI Taste Intelligence System", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="Media Taste Intelligence", version="1.1.0", lifespan=lifespan)
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+def serialize_media(item: MediaItem, user_status: str | None = None):
+    return {
+        "id": item.id,
+        "title": item.title,
+        "description": item.description,
+        "media_type": item.media_type,
+        "language": item.language,
+        "status": item.status,
+        "runtime_minutes": item.runtime_minutes,
+        "commitment": item.commitment,
+        "tags": item.tags,
+        "genres": item.tags,
+        "features": item.features,
+        "downsides": item.downsides,
+        "dub_available": item.dub_available,
+        "hidden_gem": item.hidden_gem,
+        "user_status": user_status,
+    }
 
 
 @app.get("/")
@@ -37,20 +59,71 @@ def index():
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "version": "1.1.0"}
 
 
 @app.get("/api/catalog")
-def catalog(media_type: str | None = None, q: str | None = None, db: Session = Depends(get_db)):
+def catalog(media_type: str | None = None, q: str | None = None, genre: str | None = None, db: Session = Depends(get_db)):
     stmt = select(MediaItem)
     if media_type:
         stmt = stmt.where(MediaItem.media_type == media_type)
     items = list(db.scalars(stmt.order_by(MediaItem.title)))
     if q:
         ql = q.lower()
-        items = [m for m in items if ql in m.title.lower() or any(ql in t.lower() for t in m.tags)]
+        items = [m for m in items if ql in m.title.lower() or ql in m.description.lower() or any(ql in t.lower() for t in m.tags)]
+    if genre:
+        items = [m for m in items if genre.lower() in {tag.lower() for tag in m.tags}]
     statuses = {r.media_id: r.status for r in db.scalars(select(ConsumptionRecord))}
-    return [{"id":m.id,"title":m.title,"media_type":m.media_type,"language":m.language,"status":m.status,"runtime_minutes":m.runtime_minutes,"commitment":m.commitment,"tags":m.tags,"features":m.features,"user_status":statuses.get(m.id)} for m in items]
+    return [serialize_media(m, statuses.get(m.id)) for m in items]
+
+
+@app.post("/api/catalog")
+def create_catalog_item(payload: MediaCreatePayload, db: Session = Depends(get_db)):
+    duplicate = db.scalar(select(MediaItem).where(MediaItem.title == payload.title, MediaItem.media_type == payload.media_type))
+    if duplicate:
+        raise HTTPException(409, "An item with this title and media type already exists")
+    clean_tags = list(dict.fromkeys([x.strip() for x in [*payload.genres, *payload.tags] if x.strip()]))
+    clean_features = {k.strip(): max(0.0, min(1.0, float(v))) for k, v in payload.features.items() if k.strip()}
+    item = MediaItem(
+        title=payload.title.strip(), media_type=payload.media_type, description=payload.description.strip(),
+        language=payload.language.strip(), status=payload.status, runtime_minutes=payload.runtime_minutes,
+        commitment=payload.commitment, tags=clean_tags, features=clean_features,
+        downsides=[x.strip() for x in payload.downsides if x.strip()], dub_available=payload.dub_available,
+        hidden_gem=payload.hidden_gem, quality_prior=payload.quality_prior,
+    )
+    db.add(item)
+    db.flush()
+    db.add(InteractionEvent(event_type="catalog_item_created", media_id=item.id, payload={"source": "user"}))
+    db.commit()
+    db.refresh(item)
+    return serialize_media(item)
+
+
+@app.get("/api/genres")
+def genres(db: Session = Depends(get_db)):
+    evidence: dict[str, list[dict]] = {}
+    for item in db.scalars(select(MediaItem).order_by(MediaItem.title)):
+        for tag in item.tags:
+            evidence.setdefault(tag, []).append({"id": item.id, "title": item.title, "media_type": item.media_type})
+    return [{"name": name, "count": len(items), "evidence": items[:6]} for name, items in sorted(evidence.items(), key=lambda x: (-len(x[1]), x[0].lower()))]
+
+
+@app.get("/api/saved")
+def saved(db: Session = Depends(get_db)):
+    records = list(db.scalars(select(ConsumptionRecord).where(ConsumptionRecord.status.in_(["interested", "planned", "started", "paused"]))))
+    return [serialize_media(r.media, r.status) for r in records]
+
+
+@app.get("/api/random")
+def random_pick(media_type: str | None = None, db: Session = Depends(get_db)):
+    items = list(db.scalars(select(MediaItem)))
+    if media_type:
+        items = [x for x in items if x.media_type == media_type]
+    rejected = {r.media_id for r in db.scalars(select(ConsumptionRecord).where(ConsumptionRecord.status == "rejected"))}
+    items = [x for x in items if x.id not in rejected]
+    if not items:
+        raise HTTPException(404, "No eligible catalog items")
+    return serialize_media(random.choice(items))
 
 
 @app.post("/api/onboarding")
@@ -106,9 +179,16 @@ def recommendations(context: RecommendationContext, db: Session = Depends(get_db
 
 @app.post("/api/recommendations/{media_id}/event")
 def recommendation_event(media_id: int, event_type: str, db: Session = Depends(get_db)):
-    if db.get(MediaItem, media_id) is None:
+    item = db.get(MediaItem, media_id)
+    if item is None:
         raise HTTPException(404, "Media item not found")
     db.add(InteractionEvent(event_type=f"recommendation_{event_type}", media_id=media_id))
+    if event_type in {"accepted", "saved"}:
+        record = db.scalar(select(ConsumptionRecord).where(ConsumptionRecord.media_id == media_id))
+        if record is None:
+            db.add(ConsumptionRecord(media_id=media_id, status="planned"))
+        elif record.status in {"rejected", "abandoned"}:
+            record.status = "planned"
     db.commit()
     return {"saved": True}
 
@@ -118,28 +198,10 @@ def analytics(db: Session = Depends(get_db)):
     consumption = list(db.scalars(select(ConsumptionRecord)))
     evaluations = list(db.scalars(select(Evaluation)))
     runs = list(db.scalars(select(RecommendationRun)))
-    return {
-        "tracked_items": len(consumption),
-        "completed": sum(1 for x in consumption if x.status == "completed"),
-        "abandoned": sum(1 for x in consumption if x.status == "abandoned"),
-        "evaluations": len(evaluations),
-        "recommendation_runs": len(runs),
-        "average_enjoyment": round(sum(x.enjoyment for x in evaluations) / len(evaluations), 1) if evaluations else None,
-    }
+    return {"tracked_items":len(consumption),"completed":sum(1 for x in consumption if x.status=="completed"),"abandoned":sum(1 for x in consumption if x.status=="abandoned"),"saved":sum(1 for x in consumption if x.status in {"interested","planned"}),"evaluations":len(evaluations),"recommendation_runs":len(runs),"average_enjoyment":round(sum(x.enjoyment for x in evaluations)/len(evaluations),1) if evaluations else None}
 
 
 @app.get("/api/export")
 def export_data(db: Session = Depends(get_db)):
-    media = list(db.scalars(select(MediaItem)))
-    consumption = list(db.scalars(select(ConsumptionRecord)))
-    evaluations = list(db.scalars(select(Evaluation)))
-    preferences = list(db.scalars(select(PreferenceDimension)))
-    events = list(db.scalars(select(InteractionEvent)))
-    return {
-        "version": "1.0",
-        "media": [{"id":m.id,"title":m.title,"media_type":m.media_type,"tags":m.tags,"features":m.features} for m in media],
-        "consumption": [{"media_id":x.media_id,"status":x.status,"progress":x.progress,"reason":x.reason} for x in consumption],
-        "evaluations": [{"media_id":x.media_id,"enjoyment":x.enjoyment,"quality":x.quality,"rewatch_value":x.rewatch_value,"aspects":x.aspects,"notes":x.notes} for x in evaluations],
-        "preferences": [{"scope":x.scope,"feature":x.feature,"preferred_value":x.preferred_value,"importance":x.importance,"confidence":x.confidence,"evidence_count":x.evidence_count,"explicit":x.explicit} for x in preferences],
-        "events": [{"event_type":x.event_type,"media_id":x.media_id,"payload":x.payload,"created_at":x.created_at.isoformat()} for x in events],
-    }
+    media=list(db.scalars(select(MediaItem))); consumption=list(db.scalars(select(ConsumptionRecord))); evaluations=list(db.scalars(select(Evaluation))); preferences=list(db.scalars(select(PreferenceDimension))); events=list(db.scalars(select(InteractionEvent)))
+    return {"version":"1.1","media":[serialize_media(m) for m in media],"consumption":[{"media_id":x.media_id,"status":x.status,"progress":x.progress,"reason":x.reason} for x in consumption],"evaluations":[{"media_id":x.media_id,"enjoyment":x.enjoyment,"quality":x.quality,"rewatch_value":x.rewatch_value,"aspects":x.aspects,"notes":x.notes} for x in evaluations],"preferences":[{"scope":x.scope,"feature":x.feature,"preferred_value":x.preferred_value,"importance":x.importance,"confidence":x.confidence,"evidence_count":x.evidence_count,"explicit":x.explicit} for x in preferences],"events":[{"event_type":x.event_type,"media_id":x.media_id,"payload":x.payload,"created_at":x.created_at.isoformat()} for x in events]}
